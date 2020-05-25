@@ -18,6 +18,8 @@
 
 #include "helper_functions.h"
 
+using namespace std;
+
 using std::string;
 using std::vector;
 
@@ -222,24 +224,19 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
       // calculate normalization term
       double gauss_norm;
-      gauss_norm = 1 / (2 * M_PI * sig_x * sig_y);
+      gauss_norm = 1 / (2 * M_PI * std_x * std_y);
 
       // calculate exponent
       double exponent;
-      exponent = (pow(x_obs - mu_x, 2) / (2 * pow(sig_x, 2)))
-                  + (pow(y_obs - mu_y, 2) / (2 * pow(sig_y, 2)));
+      exponent = (pow(obs_x - pred_x, 2) / (2 * pow(std_x, 2)))
+                  + (pow(obs_y - pred_y, 2) / (2 * pow(std_y, 2)));
 
       // calculate weight using normalization terms and exponent
       double weight;
       weight = gauss_norm * exp(-exponent);
-
-      // double obs_weight = (1 / (2 * M_PI * std_x * std_y)) * 
-      //     exp( -(pow(pred_x - obs_x, 2) / (2*pow(std_x, 2)) + 
-      //        (pow(pred_y - obs_y, 2) / (2 * pow(std_y, 2))) ));
-
       
       // Weight is the product of all observations
-      curr_particle.weight *= obs_weight;
+      curr_particle.weight *= weight;
     }
   }
 }
@@ -251,7 +248,44 @@ void ParticleFilter::resample() {
    * NOTE: You may find std::discrete_distribution helpful here.
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
+  double beta = 0.0;
 
+  // Get all weights
+  vector<double> weights;
+  for (int i = 0; i < num_particles; i++) {
+    weights.push_back(particles[i].weight);
+  }
+
+  // Get max weight
+  double max_weight = *max_element(weights.begin(), weights.end());
+
+  // Create the uniform random distribution between 0.0 and max_weight
+  uniform_real_distribution<double> unirealdist(0.0, max_weight);
+
+  // Generate a random starting index
+  uniform_int_distribution<int> uni_int_dist(0, num_particles-1);
+  int index_wheel = uni_int_dist(gen);
+
+  // Create vector for new sampled particles
+  vector<Particle> new_resampled_particles;
+
+  // Use the sample wheel
+  for (int i = 0; i < num_particles; i++){
+
+    beta += unirealdist(gen) * 2.0;
+
+    while (beta > weights[index_wheel]) {
+      beta -= weights[index_wheel];
+
+      index_wheel = (index_wheel + 1) % num_particles;
+    }
+
+    // Add this particle
+    new_resampled_particles.push_back(particles[index_wheel]);
+  }
+
+  // Set new list of resampled particles
+  particles = new_resampled_particles;
 }
 
 void ParticleFilter::SetAssociations(Particle& particle, 
