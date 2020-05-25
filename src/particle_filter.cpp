@@ -185,7 +185,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     vector<LandmarkObs> transformed_observations;
 
     for(unsigned int j = 0; j < observations.size(); j++){
-      double transf_x = cos(curr_particle.theta) * observations[j].x - sin(curr_particle.theta) * observations[j].x + curr_particle.x;
+      double transf_x = cos(curr_particle.theta) * observations[j].x - sin(curr_particle.theta) * observations[j].y + curr_particle.x;
       double transf_y = sin(curr_particle.theta) * observations[j].x + cos(curr_particle.theta) * observations[j].y + curr_particle.y;
       transformed_observations.push_back(LandmarkObs{observations[j].id, transf_x, transf_y});
     }
@@ -196,7 +196,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     dataAssociation(landmarks_within_range, transformed_observations);
 
     // Reset weight
-    curr_particle.weight = 1.0;
+    particles[i].weight = 1.0;
 
     // -------------------------------------------
     // 
@@ -236,7 +236,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       weight = gauss_norm * exp(-exponent);
       
       // Weight is the product of all observations
-      curr_particle.weight *= weight;
+      particles[i].weight *= weight;
     }
   }
 }
