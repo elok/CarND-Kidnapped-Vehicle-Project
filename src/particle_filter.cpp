@@ -98,7 +98,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   }
 }
 
-void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 
+void ParticleFilter::dataAssociation(Particle &particle,
+                                     vector<LandmarkObs> predicted, 
                                      vector<LandmarkObs>& observations) {
   /**
    * TODO: Find the predicted measurement that is closest to each 
@@ -108,6 +109,10 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
+
+  vector<int> associations;
+  vector<double> sense_x;
+  vector<double> sense_y;
 
   for(unsigned int i = 0; i < observations.size(); i++){
 
@@ -137,7 +142,14 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
 
     // Assign the nearest predicted landmark to this observation's id
     observations[i].id = map_id;
+
+    associations.push_back(map_id);
+    sense_x.push_back(obs.x);
+    sense_y.push_back(obs.y);
   }
+
+  // Set associations to add blue lines
+  SetAssociations(particle, associations, sense_x, sense_y);
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -193,7 +205,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // -------------------------------------------
     // Association -- Assign the nearest predicted landmark to each observation
     // -------------------------------------------
-    dataAssociation(landmarks_within_range, transformed_observations);
+    dataAssociation(particles[i], landmarks_within_range, transformed_observations);
 
     // Reset weight
     particles[i].weight = 1.0;
