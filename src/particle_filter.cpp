@@ -52,10 +52,10 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   for(int i = 0; i < num_particles; i++) {
     Particle p;
     p.id = i;
-    p.x = dist_x(gen);
-    p.y = dist_y(gen);
+    p.x = x;
+    p.y = y;
     p.theta = dist_theta(gen);
-    p.weight = 1;
+    p.weight = 1.0;
     particles.push_back(p);
   }
 
@@ -120,7 +120,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
     // Get current observation
     LandmarkObs obs = observations[i];
 
-    for(unsigned int j=0; j<predicted.size(); j++){
+    for(unsigned int j = 0; j < predicted.size(); j++){
 
       // Get current predicted measurement
       LandmarkObs pred = predicted[j];
@@ -136,7 +136,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
     }
 
     // Assign the nearest predicted landmark to this observation's id
-    obs.id = map_id;
+    observations[i].id = map_id;
   }
 }
 
